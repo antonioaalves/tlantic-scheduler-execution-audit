@@ -1,0 +1,36 @@
+---
+description: User runs git add, commit, and push; agent supplies commands and messages only.
+alwaysApply: true
+---
+
+# Git — user runs commits and push
+
+The user stages, commits, and pushes locally. The agent does **not** run those steps.
+
+## Do not run
+
+- `git add`, `git commit`, `git push`
+- `git push --force` or other write operations on remotes
+- Creating commits when the user only asked for a commit **message** or "how to commit"
+
+## Do run (read-only git is fine)
+
+- `git status`, `git diff`, `git log`, `git branch`, comparing branches for review
+
+## When the user needs to commit
+
+1. Propose a **commit message** (subject + body if the change warrants it).
+2. Give **copy-paste commands** as separate steps (one command per line; no `&&`).
+3. Include only paths that belong in the commit; mention if they should review `git status` first.
+
+Example handoff:
+
+```text
+git add src/foo.py tests/test_foo.py docs/story-implementation-docs/STRSOL-9999_development_guide.md
+git commit -m "fix(data): allow empty df_feriados load
+
+Continue pipeline with warning when the unit holiday query returns zero rows."
+git push
+```
+
+Run `git commit` or `git push` only when the user **explicitly orders** that command to be executed (same bar as running the algorithm process).

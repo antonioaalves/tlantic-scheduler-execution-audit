@@ -1,0 +1,45 @@
+---
+description: Run shell commands without && or ||; use separate invocations (Windows PowerShell).
+alwaysApply: true
+---
+
+# Shell commands — no chaining
+
+This environment uses **Windows PowerShell**. Chained shell syntax often fails or behaves unexpectedly and wastes time.
+
+## Do not use
+
+In the Shell tool `command` string, **never** use:
+
+- `&&` or `||` (bash-style chaining — unreliable or invalid in PowerShell)
+- One-liners like `cd path && npm test` or `git add . && git commit`
+
+Prefer **one command per Shell call** instead of chaining with `;` as well.
+
+## Do instead
+
+1. **Separate Shell tool calls** — one command per invocation. Use `working_directory` instead of `cd`.
+2. **Parallel calls** when commands are independent (e.g. `git status`, `git diff`, `git log` together).
+3. **Sequential calls** when step B depends on step A — run A, read the result, then run B.
+
+## Examples
+
+```text
+# Bad
+git add src/foo.py && git commit -m "fix"
+
+# Good — two Shell calls; second only after the first succeeds
+git add src/foo.py
+git commit -m "fix: ..."
+```
+
+```text
+# Bad
+cd tests && pytest test_foo.py
+
+# Good
+pytest test_foo.py
+# with working_directory set to the tests folder (or repo root as appropriate)
+```
+
+If a command fails, stop and fix or report — do not chain “run only if previous succeeded” into one string; rely on separate steps.

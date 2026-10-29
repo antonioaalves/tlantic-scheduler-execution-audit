@@ -1,0 +1,16 @@
+---
+description: Never start the algorithm, batch, or database process. The user runs it.
+alwaysApply: true
+---
+
+# Do not run the process
+
+The user runs this project. The agent does not.
+
+Do not start `batch_process.py`, `main.py`, `orquestrador.py`, `routes.py`, or any other command that loads data, connects to Oracle, or runs the solver. Do not launch those commands to "verify", "see the logs", or "try it".
+
+"We are going to execute", "we will run", and "let's execute it" mean the user will run it. Stay put. Answer the question. Do not touch the terminal for a run.
+
+Run a process only when the current message explicitly orders that run, for example "run the batch now" or "execute the process". A plan to run later is not that order.
+
+Reading code, editing code, and answering questions do not require a run.
