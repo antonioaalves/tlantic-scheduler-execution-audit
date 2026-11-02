@@ -2,14 +2,14 @@
 
 **Status:** draft. This file is the cross-product map. It does not replace the product inventories. Ingest topology and phased export scope are in [04-ingestion-strategy.md](04-ingestion-strategy.md). Storage, UI, and telemetry schema are not fully chosen here.
 
-| Product | Audit slug | Inventory |
-|---------|------------|-----------|
-| **algortimo-gd** | `algortimo-gd` | [discovery](products/algortimo-gd/execution-analytics-platform_discovery_document.md) |
-| **algoritmo_GH_PD** | `algoritmo-gh-pd` | [discovery](products/algoritmo-gh-pd/execution-analytics-platform_discovery_document.md) |
+| Product | Inventory |
+|---------|-----------|
+| **algoritmo-gd** | [discovery](products/algoritmo-gd/execution-analytics-platform_discovery_document.md) |
+| **algoritmo-gh** | [discovery](products/algoritmo-gh/execution-analytics-platform_discovery_document.md) |
 
 Forecast is a possible later product. It has no checkpoint map in this repo yet.
 
-The slug `algortimo-gd` keeps the spelling already used in the GD inventory. `algoritmo_GH_PD` is the only algoritmo_GH codebase. Its audit slug is `algoritmo-gh-pd`.
+`project` is `algoritmo-gd` or `algoritmo-gh` ([04-ingestion-strategy.md](04-ingestion-strategy.md)).
 
 ## Two audit processes
 
@@ -18,7 +18,7 @@ These are detached processing items. Each execution audit belongs to one product
 | Fact | What it means for the platform |
 |------|--------------------------------|
 | **Separate audits** | A GD run and a GH run are different audit processes. Each has its own timeline, validations, and result. |
-| **GH runs on GD results** | algoritmo_GH consumes algortimo-gd output. A GH audit may later point at the GD result it consumed. That link is a relationship between two audits. |
+| **GH runs on GD results** | algoritmo-gh consumes algoritmo-gd output. A GH audit may later point at the GD result it consumed. That link is a relationship between two audits. |
 | **Different results** | The two pipelines do not mean the same thing and do not produce the same result. A GH outcome is not a GD outcome under another name. |
 | **Same process entities** | Both consume the same WFM process entities (`esc_processo`, status procedures, process errors, `CORE_ALG_PARAMETERS`). Shared entity shape is how a process is stored. It is not a shared execution id. |
 
@@ -40,13 +40,13 @@ Status letters in both inventories: `N` polled, `P` claimed, `G` done, `I` inval
 
 Keys both inventories already have: `wfm_proc_id`, `posto_id`, dates, a user string, and some form of algorithm identity.
 
-Keys the platform adds: `deployment_version` (not in code today). **`tenant_id`** (or equivalent environment id) is **not in WFM or the algorithm repos**; it will be **defined in this platform** and set per **export-agent deployment** ([04-ingestion-strategy.md](04-ingestion-strategy.md)). Do not map it from `FK_EMPRESA` or the Oracle user without an explicit decision.
+Keys the platform adds: `deployment_version` (not in code today), plus provenance from [04-ingestion-strategy.md](04-ingestion-strategy.md): `tenant_id` (client name), `env` (`prd`, `tst`, or `dev`), and `project` (`algoritmo-gd` or `algoritmo-gh`). Those three are set in export-agent config. They are not read from `FK_EMPRESA` or the Oracle user. GD and GH in the same client environment share `tenant_id` and `env`.
 
 Telemetry tiers T0–T3 are defined in each product discovery. Default direction in both: **T0 + T1** first; full artefacts (T3) stay off until explicitly approved.
 
 ## Do not flatten these differences
 
-| Topic | algortimo-gd | algoritmo-gh-pd |
+| Topic | algoritmo-gd | algoritmo-gh |
 |-------|----------------|-----------------|
 | Child execution | In-process `run_batch_process`; parent sets `G` / `I` | Parent `Popen`s `main.py` and sends itself `SIGTERM`; the child sets parameter status `G` / `I` |
 | Stage names | Registry: `data_loading`, then `processing` substages `treat_params`, `load_matrices`, `func_inicializa`, `allocation_cycle`, `format_results`, `insert_results` | No stage registry. A–E map to functions (`ESCRunner`, `SchedulerMain`, daily CBC). Do not emit GD substage names for GH |
@@ -58,8 +58,8 @@ Telemetry tiers T0–T3 are defined in each product discovery. Default direction
 UI label that stays honest (from the GH inventory):
 
 ```text
-project: algortimo-gd     | stages: data_loading > processing/{treat_params…insert_results} | keys: tenant_id, wfm_proc_id, posto_id, data_model, algorithm_name, deployment_version
-project: algoritmo-gh-pd  | checkpoints: A job > B load > C template/day rows > D daily CBC > E int_schedule_algorithm | CORE_SCHED_ALGORITHM_READ | keys: tenant_id (new), wfm_proc_id, posto_id, process_type, algorithm_name=ESC, deployment_version (new)
+project: algoritmo-gd | stages: data_loading > processing/{treat_params…insert_results} | keys: tenant_id, env, wfm_proc_id, posto_id, data_model, algorithm_name, deployment_version
+project: algoritmo-gh | checkpoints: A job > B load > C template/day rows > D daily CBC > E int_schedule_algorithm | CORE_SCHED_ALGORITHM_READ | keys: tenant_id, env, wfm_proc_id, posto_id, process_type, algorithm_name=ESC, deployment_version (new)
 ```
 
 `process_type` is required on GH events and is not required on GD events. `data_model` is required on GD events and is not required on GH events.

@@ -1,12 +1,12 @@
-# Vision and validations backlog — algoritmo_GH_PD
+# Vision and validations backlog — algoritmo-gh
 
-Copied from `algoritmo_GH_PD` `docs/execution-analytics-platform_vision-and-validations-backlog.md` on 26/10/2026. Platform index: [docs/02-vision-and-validations.md](../../02-vision-and-validations.md).
+Copied from `algoritmo-gh` `docs/execution-analytics-platform_vision-and-validations-backlog.md` on 26/10/2026. Platform index: [docs/02-vision-and-validations.md](../../02-vision-and-validations.md).
 
 Template for product ideas. Rows with status `idea` that were seeded from code are guards, status letters, or error codes that already exist. They are not a committed validation suite.
 
 Empty rows are for the product owner. Do not treat this file as an implementation plan.
 
-Project slug: `algoritmo-gh-pd`. Checkpoint letters match `execution-analytics-platform_discovery_document.md`.
+Project slug: `algoritmo-gh`. Checkpoint letters match `execution-analytics-platform_discovery_document.md`.
 
 Severity vocabulary (product): `blocker` | `major` | `minor` | `info`. Status vocabulary: `idea` | `accepted` | `rejected` | `shipped`.
 
@@ -76,7 +76,7 @@ Mapped to checkpoints. Empty on purpose beyond a few navigation ideas that follo
 
 | ID | Feature | Checkpoints | Status | Notes |
 | --- | --- | --- | --- | --- |
-| UI-01 | Run list filtered by `project=algoritmo-gh-pd`, `wfm_proc_id`, `process_type`, final status `G`/`I` | A, E | idea | Same list component as algortimo-gd if `project` is a column. |
+| UI-01 | Run list filtered by `project=algoritmo-gh`, `wfm_proc_id`, `process_type`, final status `G`/`I` | A, E | idea | Same list component as algoritmo-gd if `project` is a column. |
 | UI-02 | Posto timeline: A→E for one `(wfm_proc_id, posto_id)` | A–E | idea | This project has no stage registry; the timeline is the checkpoint array. |
 | UI-03 | Day strip for checkpoint D: solver status, seconds, fallback flag, violation rule counts | D | idea | One CBC solve per day. Do not reuse GD’s single `allocation_cycle` chart without a day axis. |
 | UI-04 | Outcome panel: `rows_inserted` vs `Z` counts by `OPTION_C1`, or type-3 `rows_updated` | E | idea | Employee identifiers on the wire should follow the PII decision (código vs matrícula). |

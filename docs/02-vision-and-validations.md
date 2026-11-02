@@ -4,8 +4,8 @@
 
 | Product | Backlog |
 |---------|---------|
-| **algortimo-gd** | [vision and validations](products/algortimo-gd/execution-analytics-platform_vision-and-validations-backlog.md) |
-| **algoritmo_GH_PD** | [vision and validations](products/algoritmo-gh-pd/execution-analytics-platform_vision-and-validations-backlog.md) |
+| **algoritmo-gd** | [vision and validations](products/algoritmo-gd/execution-analytics-platform_vision-and-validations-backlog.md) |
+| **algoritmo-gh** | [vision and validations](products/algoritmo-gh/execution-analytics-platform_vision-and-validations-backlog.md) |
 
 Forecast ideas do not have a backlog yet.
 
@@ -13,7 +13,7 @@ Forecast ideas do not have a backlog yet.
 
 The two backlogs were seeded from different code and they do not share an id scheme or a severity vocabulary.
 
-| | algortimo-gd | algoritmo-gh-pd |
+| | algoritmo-gd | algoritmo-gh |
 |--|----------------|-----------------|
 | Ids | `A-001` | `A-01` |
 | Severity | `blocker`, `warning`, `info` | `blocker`, `major`, `minor`, `info` |

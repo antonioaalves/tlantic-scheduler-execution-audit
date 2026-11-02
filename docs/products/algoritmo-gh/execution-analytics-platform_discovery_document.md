@@ -1,26 +1,26 @@
-# Execution analytics discovery — algoritmo_GH_PD
+# Execution analytics discovery — algoritmo-gh
 
-Copied from `algoritmo_GH_PD` `docs/execution-analytics-platform_discovery_document.md` on 26/10/2026. That repository remains the code ground truth. Shared platform scope is in [docs/01-discovery.md](../../01-discovery.md).
+Copied from `algoritmo-gh` `docs/execution-analytics-platform_discovery_document.md` on 26/10/2026. That repository remains the code ground truth. Shared platform scope is in [docs/01-discovery.md](../../01-discovery.md).
 
 Discovery only. This document inventories what the code does today. It does not choose ingestion (push/pull), the audit database, or the UI stack.
 
-Workspace: `algoritmo_GH_PD` (folder `algoritmo_GH_PD`). Suggested audit `project` slug: `algoritmo-gh-pd`. WFM process codes in code: `AlgoritmoHorariosPython_Pai` (parent) and `AlgoritmoHorariosPython_Filho` (child). A second string, `AlgoritmoHorarios_Filho_PYTHON`, is set on `AlgorithmConstructor.proc_code` and is not passed to the status writers.
+Workspace: `algoritmo-gh` (folder `algoritmo-gh`). Suggested audit `project` slug: `algoritmo-gh`. WFM process codes in code: `AlgoritmoHorariosPython_Pai` (parent) and `AlgoritmoHorariosPython_Filho` (child). A second string, `AlgoritmoHorarios_Filho_PYTHON`, is set on `AlgorithmConstructor.proc_code` and is not passed to the status writers.
 
-Sister project used for alignment: `algoritmo_GD` (audit slug in the prior pass: `algortimo-gd`). Comparison is limited to what is in that repo’s `orquestrador.py`, `src/services/algoritmo_gd.py`, and `src/settings/project_structure.py`, plus the checkpoint keys already agreed for that project.
+Sister project used for alignment: `algoritmo-gd`. Comparison is limited to what is in that repo’s `orquestrador.py`, `src/services/algoritmo_gd.py`, and `src/settings/project_structure.py`, plus the checkpoint keys already agreed for that project.
 
-Existing narrative in `algoritmo_GH_PD`: `architecture.md`. Where it disagrees with the files below, the code wins.
+Existing narrative in `algoritmo-gh`: `architecture.md`. Where it disagrees with the files below, the code wins.
 
 ## Summary
 
-`algoritmo_GH_PD` is a Python workforce **horários** generator. An external caller starts `orquestrador.py`. That parent reads pending rows from WFM Oracle (`esc_processo` via `S_PROCESSO.GET_PROCESS_BY_STATUS`), marks one process `P`, and starts `main.py` as a subprocess. The child loads employees and section context, then for each posto runs a weekly template selector and a **per-day PuLP/CBC** shift model, and writes schedules back to Oracle.
+`algoritmo-gh` is a Python workforce **horários** generator. An external caller starts `orquestrador.py`. That parent reads pending rows from WFM Oracle (`esc_processo` via `S_PROCESSO.GET_PROCESS_BY_STATUS`), marks one process `P`, and starts `main.py` as a subprocess. The child loads employees and section context, then for each posto runs a weekly template selector and a **per-day PuLP/CBC** shift model, and writes schedules back to Oracle.
 
-There is no stage registry. Stages exist only as the call order inside `ESCRunner` → `SchedulerMain`. The A–E checkpoint frame still fits. Algortimo-gd’s named substages (`treat_params`, `load_matrices`, `func_inicializa`, `allocation_cycle`, `format_results`, `insert_results`) are **not** present here and should not be copied as this project’s checkpoint names.
+There is no stage registry. Stages exist only as the call order inside `ESCRunner` → `SchedulerMain`. The A–E checkpoint frame still fits. algoritmo-gd’s named substages (`treat_params`, `load_matrices`, `func_inicializa`, `allocation_cycle`, `format_results`, `insert_results`) are **not** present here and should not be copied as this project’s checkpoint names.
 
 ### Recommended workflow
 
 1. **Inventory first** (this document): entrypoints, checkpoints, keys, what is already stored.
 2. **Vision / validations backlog**: product ideas per checkpoint (`execution-analytics-platform_vision-and-validations-backlog.md`). Seed rows below are only guards and error codes that already exist in code.
-3. **New repo docs**: copy these files into `tlantic-scheduler-execution-audit` and keep `project = algoritmo-gh-pd` beside `algortimo-gd`.
+3. **New repo docs**: copy these files into `tlantic-scheduler-execution-audit` and keep `project = algoritmo-gh` beside `algoritmo-gd`.
 4. **Implement later**: emitters, storage, and UI. Do not lock those choices in this pass.
 
 Audit principles carried over: metadata first, fail-open emitters, no hard platform decisions without a separate decision.
@@ -197,7 +197,7 @@ External caller
 
 ## Audit checkpoints
 
-A–E matches this pipeline. Use them as the shared axis with algortimo-gd. Under each letter, this project’s real substages are functions, not a config registry.
+A–E matches this pipeline. Use them as the shared axis with algoritmo-gd. Under each letter, this project’s real substages are functions, not a config registry.
 
 ### A — External process / job structure
 
@@ -344,12 +344,12 @@ No column or variable in this repo is `tenant_id`, `deployment_version`, `audit_
 
 | Key | Why |
 | --- | --- |
-| `project` | Constant `algoritmo-gh-pd` so one UI can filter beside `algortimo-gd`. |
+| `project` | Constant `algoritmo-gh` so one UI can filter beside `algoritmo-gd`. |
 | `tenant_id` | Not in this codebase. Required for cross-tenant analytics. Do not invent it from `FK_EMPRESA` or the Oracle user in `acessos.txt` until that mapping is confirmed. |
 | `deployment_version` | Not in git metadata inside the running process (no version file read at startup). |
 | `audit_run_id` | `wfm_proc_id` + `posto_id` is the business grain, but a rerun of the same WFM process would collide if emitters append. |
 | `parent_api_proc_id` | Only if the external caller’s id must be kept. Today it dies in the parent except on parent-scoped error rows. |
-| `data_model` | Algortimo-gd uses model names (`salsa`, `alcampo`, …). Here the closest existing discriminator is `process_type` (`2` or `3`) plus `algorithm_name=ESC`. Do not overload `data_model` with `process_type` until the product names them. |
+| `data_model` | algoritmo-gd uses model names (`salsa`, `alcampo`, …). Here the closest existing discriminator is `process_type` (`2` or `3`) plus `algorithm_name=ESC`. Do not overload `data_model` with `process_type` until the product names them. |
 
 Suggested grain for a v1 event: one event per `(project, wfm_proc_id, posto_id)` with checkpoint array A–E. A parent-level event (checkpoint A only) is a separate row keyed by `wfm_proc_id` and, when present, `parent_api_proc_id`.
 
@@ -469,7 +469,7 @@ Path casing: `Getters.py` opens `Data/Queries/WFM_PROCESS/...` while the directo
 
 This process emits none of these as audit events. Tiers are what a v1 emitter should send. Fail-open: a failed emit must not change WFM status or the insert.
 
-| Tier | Meaning | v1 for algoritmo-gh-pd |
+| Tier | Meaning | v1 for algoritmo-gh |
 | --- | --- | --- |
 | T0 index | Identity and outcome so a run can be found | **Emit.** `project`, `wfm_proc_id`, `posto_id` (null on parent-only events), `process_type`, `algorithm_name`, `generation_type`, `unit_id`, `secao_id`, `start_date`, `end_date`, `child_number`, checkpoint name, status (`started` / `ok` / `failed` / `skipped`), timestamps. `tenant_id` and `deployment_version` as null until a source exists. |
 | T1 metrics | Counts and timings, no row payloads | **Emit.** Employee count, posto count, day count, granularity minutes, template-history size, invalid-day count by `error_code`, solver status and seconds per day (summarised: counts of Optimal / Infeasible / Error, max seconds, fallback count), validator violation count by rule name, `rows_inserted` or type-3 update count, final parameter status `G`/`I`. |
@@ -485,7 +485,7 @@ Field names below exist in this project unless marked `new`. One event per posto
 ```json
 {
   "event_type": "execution_audit_v1",
-  "project": "algoritmo-gh-pd",
+  "project": "algoritmo-gh",
   "tenant_id": null,
   "deployment_version": null,
   "audit_run_id": null,
@@ -647,7 +647,7 @@ Use these as the map of where an emitter would sit later. They are not a library
 
 `architecture.md` sections 15–17 are a proposed refactor (services, repositories). They are not the running pipeline.
 
-## Cross-project notes (algortimo-gd vs algoritmo-gh-pd)
+## Cross-project notes (algoritmo-gd vs algoritmo-gh)
 
 Shared, safe to use as one audit axis:
 
@@ -665,7 +665,7 @@ Shared, safe to use as one audit axis:
 
 Divergences the UI must not flatten:
 
-| Topic | algortimo-gd | algoritmo-gh-pd |
+| Topic | algoritmo-gd | algoritmo-gh |
 | --- | --- | --- |
 | How the child runs | `orquestrador.py` calls `batch_process.run_batch_process` in-process and then sets status `G`/`I` itself. | Parent `Popen`s `main.py` and sends itself `SIGTERM`. The child sets parameter status `G`/`I`. |
 | Stage model | `ProcessStageHandler` and `project_structure`: stages `data_loading` and `processing`, substages `treat_params`, `load_matrices`, `func_inicializa`, `allocation_cycle`, `format_results`, `insert_results`. | No stage handler. A–E map onto functions listed above. Do not emit GD substage names for this project. |
@@ -680,11 +680,11 @@ Divergences the UI must not flatten:
 UI label shape that stays honest:
 
 ```text
-project: algortimo-gd     | stages: data_loading > processing/{treat_params…insert_results} | keys: tenant_id, wfm_proc_id, posto_id, data_model, algorithm_name, deployment_version
-project: algoritmo-gh-pd  | checkpoints: A job > B load > C template/day rows > D daily CBC > E int_schedule_algorithm|CORE_SCHED_ALGORITHM_READ | keys: tenant_id (new), wfm_proc_id, posto_id, process_type, algorithm_name=ESC, deployment_version (new)
+project: algoritmo-gd     | stages: data_loading > processing/{treat_params…insert_results} | keys: tenant_id, wfm_proc_id, posto_id, data_model, algorithm_name, deployment_version
+project: algoritmo-gh  | checkpoints: A job > B load > C template/day rows > D daily CBC > E int_schedule_algorithm|CORE_SCHED_ALGORITHM_READ | keys: tenant_id (new), wfm_proc_id, posto_id, process_type, algorithm_name=ESC, deployment_version (new)
 ```
 
-`process_type` is project-specific. Do not require `data_model` on algoritmo-gh-pd events until a product name is chosen. Do not require `process_type` on algortimo-gd events.
+`process_type` is project-specific. Do not require `data_model` on algoritmo-gh events until a product name is chosen. Do not require `process_type` on algoritmo-gd events.
 
 ## Out of scope for this pass
 

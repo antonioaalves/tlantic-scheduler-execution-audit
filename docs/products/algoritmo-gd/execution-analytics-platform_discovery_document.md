@@ -1,13 +1,13 @@
 # Discovery document: execution analytics & audit platform
 
-**Status:** draft — product inventory for **algortimo-gd** only. Shared platform scope is in [docs/01-discovery.md](../../01-discovery.md).
+**Status:** draft — product inventory for **algoritmo-gd** only. Shared platform scope is in [docs/01-discovery.md](../../01-discovery.md).
 
 ## Doc overview
 
 | Field | Value |
 |-------|--------|
 | Jira | — |
-| Title | What to carry from algortimo-gd into a centralized execution audit web app |
+| Title | What to carry from algoritmo-gd into a centralized execution audit web app |
 | Date | 26/10/2026 |
 | Status | Draft — for team review before a new repository is created |
 | Related | Prior chat on ingestion (push vs pull, bronze/silver/gold); dev-guide-first workflow for later implementation stories |
@@ -16,16 +16,16 @@
 
 ## Summary
 
-This document inventories **how algortimo-gd runs today**, defines **audit checkpoints** aligned with the real code path, and lists **what information exists (or can be reproduced)** at each checkpoint. It is the first artefact for a separate analytics/audit project—not a commitment to ingest everything on day one.
+This document inventories **how algoritmo-gd runs today**, defines **audit checkpoints** aligned with the real code path, and lists **what information exists (or can be reproduced)** at each checkpoint. It is the first artefact for a separate analytics/audit project—not a commitment to ingest everything on day one.
 
-**Out of scope (for this doc):** choosing the analytics database, building the web UI, or implementing telemetry hooks in algortimo-gd.
+**Out of scope (for this doc):** choosing the analytics database, building the web UI, or implementing telemetry hooks in algoritmo-gd.
 
 **Recommended workflow (answer to “ideas first vs code first?”):**
 
-1. **Use this document first** — ground the new project in observable facts from algortimo-gd (pipeline, keys, persisted vs ephemeral data).
+1. **Use this document first** — ground the new project in observable facts from algoritmo-gd (pipeline, keys, persisted vs ephemeral data).
 2. **Keep a short “ideas backlog”** (separate file or section below) — capture floating thoughts **mapped to a checkpoint**, not as a unstructured wish list.
 3. **Create the new repository** once the checkpoint map and v1 telemetry schema are agreed — the repo README can link back here.
-4. **Implement ingestion + app** in the new repo; changes to algortimo-gd should be small, optional hooks (fail-open) in a later story.
+4. **Implement ingestion + app** in the new repo; changes to algoritmo-gd should be small, optional hooks (fail-open) in a later story.
 
 Writing ideas only before the inventory tends to reinvent checkpoints that already exist in code (e.g. substages in `project_structure.py`). Doing inventory first makes every idea testable: “which checkpoint?”, “already in Oracle?”, “replay from inputs?”.
 
@@ -102,7 +102,7 @@ Reference configuration: `src/settings/project_structure.py` (substages and sequ
 | `data_model` | `GD_algorithmName` → alcampo vs salsa | Drives different SQL paths and treatment. |
 | `algorithm_name` | treat_params / parameter defaults | e.g. SALSA vs Alcampo algorithm module. |
 | `process_type` | WFM messages | e.g. `AlgoritmoHorariosPython_Pai`, `data_loading`, `processing_stage`, substage names in logs. |
-| `deployment_version` | **New** | Git tag / build id of algortimo-gd on that server. |
+| `deployment_version` | **New** | Git tag / build id of algoritmo-gd on that server. |
 
 All telemetry events should include: `{ tenant_id, wfm_proc_id, posto_id?, checkpoint, status, started_at, ended_at, duration_ms, deployment_version }`.
 
@@ -299,7 +299,7 @@ Single message `execution_audit_v1` (array of checkpoint records):
 {
   "schema_version": 1,
   "tenant_id": "client-eu-prod",
-  "deployment_version": "algortimo-gd@abc123",
+  "deployment_version": "algoritmo-gd@abc123",
   "wfm_proc_id": 12345,
   "api_proc_id": 999,
   "child_number": 1,
@@ -325,13 +325,13 @@ Single message `execution_audit_v1` (array of checkpoint records):
 }
 ```
 
-Refine field names when the first emitter is implemented in algortimo-gd.
+Refine field names when the first emitter is implemented in algoritmo-gd.
 
 ---
 
 ## Components to reference when building the new repo (not copy wholesale)
 
-| algortimo-gd area | Reuse intent |
+| algoritmo-gd area | Reuse intent |
 |-------------------|--------------|
 | `orquestrador.py` | Document parent lifecycle; optional hook after `run_batch_process`. |
 | `src/services/algoritmo_gd.py` | Substage boundaries = emitter insertion points. |
@@ -373,7 +373,7 @@ Add rows as you think of features:
 1. **Review this doc** — confirm checkpoints match how you explain the system to the team.
 2. **Answer open questions** — especially PII and push vs pull.
 3. **Create new repository** with README linking here; define `execution_audit_v1` JSON schema as code (Pydantic/JSON Schema).
-4. **Story in algortimo-gd:** optional fail-open telemetry emitter at substage boundaries (separate development guide).
+4. **Story in algoritmo-gd:** optional fail-open telemetry emitter at substage boundaries (separate development guide).
 5. **Story in analytics repo:** ingest API + daily job + minimal UI (process list + checkpoint drill-down).
 
 ---
@@ -388,10 +388,10 @@ Add rows as you think of features:
 
 ---
 
-## Suggested commit message (when adding this doc to algortimo-gd)
+## Suggested commit message (when adding this doc to algoritmo-gd)
 
 ```text
-docs: execution analytics platform discovery from algortimo-gd pipeline
+docs: execution analytics platform discovery from algoritmo-gd pipeline
 
 Inventory WFM orchestration, substages, and data entities to seed a centralized audit app.
 ```

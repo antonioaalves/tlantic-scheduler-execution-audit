@@ -1,6 +1,6 @@
 # Product vision & validations backlog — execution analytics platform
 
-**Status:** living document for **algortimo-gd** ideas. Platform index: [docs/02-vision-and-validations.md](../../02-vision-and-validations.md).
+**Status:** living document for **algoritmo-gd** ideas. Platform index: [docs/02-vision-and-validations.md](../../02-vision-and-validations.md).
 
 ## Doc overview
 
@@ -152,7 +152,7 @@ docs/
 LICENSE                   # if applicable
 ```
 
-Keep **01** as stable ground truth from algortimo-gd; keep **02** as the messy, frequently edited backlog.
+Keep **01** as stable ground truth from algoritmo-gd; keep **02** as the messy, frequently edited backlog.
 
 ---
 
