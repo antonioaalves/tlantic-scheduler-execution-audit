@@ -1,8 +1,8 @@
 # tlantic-scheduler-execution-audit
 
-Central **execution audit and analytics** for two detached scheduling processes, **algortimo-gd** and **algoritmo_GH_PD**. GH runs on GD results. They consume the same WFM process entities and produce different results, so each run is its own audit. Track those runs across client environments, drill into pipeline checkpoints, and run validations—without requiring every developer to VPN into every Oracle instance.
+Central **execution audit and analytics** for two detached scheduling processes, **algoritmo-gd** and **algoritmo-gh**. GH runs on GD results. They consume the same WFM process entities and produce different results, so each run is its own audit. Track those runs across client environments, drill into pipeline checkpoints, and run validations—without requiring every developer to VPN into every Oracle instance.
 
-> **Status:** Discovery and documentation phase. **Ingest topology** (per-environment export agent → bucket → central transform) is recorded in [docs/04-ingestion-strategy.md](docs/04-ingestion-strategy.md). Bucket layout, warehouse, BFF contract, and dedupe rules are still open; see [Decisions (open)](#decisions-open) below.
+> **Status:** Discovery and documentation phase. **Ingest topology**, provenance, re-export retention, raw JSON files, and export run manifest (with per-process completion markers) are recorded in [docs/04-ingestion-strategy.md](docs/04-ingestion-strategy.md). Warehouse and the BFF contract are still open; see [Decisions (open)](#decisions-open) below.
 
 Forecast may be added later. It is not in the checkpoint map yet.
 
@@ -22,15 +22,15 @@ This repository will hold the **web app**, **transform/load from the bucket**, a
 
 ## Products in scope
 
-| Product | Audit slug | Role |
-|---------|------------|------|
-| **algortimo-gd** | `algortimo-gd` | Own audit. Batch orchestrator, data-model factory (Salsa / Alcampo), allocation cycle, WFM insert |
-| **algoritmo_GH_PD** | `algoritmo-gh-pd` | Own audit. The only algoritmo_GH codebase. Horários generator that runs on GD results: weekly templates, daily PuLP/CBC per posto, type 2 insert or type 3 update |
+| Product | Role |
+|---------|------|
+| **algoritmo-gd** | Own audit. Batch orchestrator, data-model factory (Salsa / Alcampo), allocation cycle, WFM insert |
+| **algoritmo-gh** | Own audit. Horários generator that runs on GD results: weekly templates, daily PuLP/CBC per posto, type 2 insert or type 3 update |
 | **Forecast** | — | Possible later. No inventory yet |
 
 GD and GH are separate audit processes. They share WFM process entities (`esc_processo` and the status/error procedures). A GH record may later reference the GD result it consumed. The two results stay separate rows.
 
-`algoritmo_GH_PD` is the WFM horários generator. A parent process polls Oracle `esc_processo`, a child (`ESC`) builds weekly templates and solves a daily PuLP/CBC model per posto, then inserts `wfm.int_schedule_algorithm` (process type 2) or updates `wfm.CORE_SCHED_ALGORITHM_READ` (process type 3). It uses the same A–E axis as algortimo-gd, with its own substages and keys (`process_type`, `algorithm_name=ESC`).
+`algoritmo-gh` is the WFM horários generator. A parent process polls Oracle `esc_processo`, a child (`ESC`) builds weekly templates and solves a daily PuLP/CBC model per posto, then inserts `wfm.int_schedule_algorithm` (process type 2) or updates `wfm.CORE_SCHED_ALGORITHM_READ` (process type 3). It uses the same A–E axis as algoritmo-gd, with its own substages and keys (`process_type`, `algorithm_name=ESC`).
 
 - **A — job structure:** `orquestrador.py`, `main.py`, `ESCRunner`, `AlgorithmConstructor`
 - **B — data loading:** `GlobalDataInitialization`, `GetGlobalData`, `SchedulerDataHandler`
@@ -54,9 +54,9 @@ Each audit uses the same five checkpoint letters. The substages inside those let
 | **D** | Algorithm & solver | GD allocation cycle; GH daily CBC |
 | **E** | Format & integration | GD insert; GH type 2 insert or type 3 update |
 
-Correlation keys that both products can share: `project`, `tenant_id` (new, per deployment), `wfm_proc_id`, `posto_id`, dates, `algorithm_name`, `deployment_version` (new).
+Correlation keys that both products can share: `tenant_id` (client name), `env` (`prd`, `tst`, or `dev`), `project`, `wfm_proc_id`, `posto_id`, dates, `algorithm_name`, `deployment_version` (new). The audit key is `tenant_id` + `env` + `project` + `wfm_proc_id`. GD and GH in the same client environment share `tenant_id` and `env`.
 
-Product-specific keys: `data_model` on algortimo-gd; numeric `process_type` (`2` or `3`) on algoritmo-gh-pd. Do not overload one field with the other.
+Product-specific keys: `data_model` on `algoritmo-gd`; numeric `process_type` (`2` or `3`) on `algoritmo-gh`. Do not overload one field with the other.
 
 ---
 
@@ -71,8 +71,8 @@ docs/
   04-ingestion-strategy.md        # Ingest decision log (partial)
   open-ideas.md                   # Scratch list
   products/
-    algortimo-gd/                 # GD discovery + validations backlog
-    algoritmo-gh-pd/              # GH_PD discovery + validations backlog + README section
+    algoritmo-gd/                 # GD discovery + validations backlog
+    algoritmo-gh/                 # GH discovery + validations backlog + README section
 ```
 
 ---
@@ -94,8 +94,7 @@ docs/
 
 | Topic | Options under consideration | Blockers / evidence needed |
 |-------|----------------------------|----------------------------|
-| **Bucket layout & loader** | Prefixes, manifest, format; poll vs event-driven load | PII, volume; separate design chats for BFF and notifications |
-| **Deduplication** | Upsert on `tenant_id` + `project` + `wfm_proc_id`; daily vs on-demand overlap | Overlap handling only—WFM runs once per `CODIGO` ([04-ingestion-strategy.md](docs/04-ingestion-strategy.md)) |
+| **Run manifest details** | Marker file name, manifest JSON fields, `run_id` vs BFF `job_id` on on-demand ([04-ingestion-strategy.md](docs/04-ingestion-strategy.md)) | Phase 1 loader and export agent implementation |
 | **Historical backfill** | Depth on first connect vs forward-only daily batch | How many days per tenant; legal/PII review |
 | **Warehouse** | Postgres (+ JSONB) vs bronze files + SQL vs document store for raw only | Query patterns, volume. Must filter by `project` |
 | **PII boundary** | Employee ids, matrícula vs código, schedule samples | Security / DPO guidance |
@@ -122,8 +121,8 @@ Exact stack (FastAPI, React, Streamlit, Prefect, etc.) **TBD** after phase 0–1
 
 | Project | Role |
 |---------|------|
-| **algortimo-gd** | GD audit source. Batch, solver, WFM integration |
-| **algoritmo_GH_PD** | GH audit source. The only GH codebase. Runs on GD results, then its own horários solve and WFM write |
+| **algoritmo-gd** | GD audit source. Batch, solver, WFM integration |
+| **algoritmo-gh** | GH audit source. Runs on GD results, then its own horários solve and WFM write |
 | **tlantic-scheduler-execution-audit** (this repo) | Ingest, store, validate, present runs across tenants and products |
 
 ---
